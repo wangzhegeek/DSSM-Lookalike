@@ -1,5 +1,5 @@
 # DSSM-Lookalike Pipeline
-implemention of Alibaba's paper: [Learning deep structured semantic models for web search using clickthrough data](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/cikm2013_DSSM_fullversion.pdf)
+implemention of paper: [Learning deep structured semantic models for web search using clickthrough data](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/cikm2013_DSSM_fullversion.pdf)
 
 一个基于DSSM的Lookalike向量化召回pipeline简单实现，包括以下部分：
 * 数据获取：使用[2018腾讯广告算法大赛](https://wx.jdcloud.com/market/jdata/list/17)比赛中的训练数据（100000条）(aid,uid,label)。
