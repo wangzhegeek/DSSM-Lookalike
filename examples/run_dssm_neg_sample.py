@@ -1,12 +1,12 @@
 import pandas as pd
 from sklearn.metrics import log_loss, roc_auc_score
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler
 import numpy as np
 
-from models.dssm import DSSM
-from inputs import SparseFeat, DenseFeat, get_feature_names, Negative_Sample
+from deepctr.models.dssm import DSSM
+from deepctr.inputs import SparseFeat, get_feature_names, Negative_Sample
 from tensorflow.python.keras.models import Model
+
 
 if __name__ == "__main__":
     data = pd.read_csv('../data/train_sample.csv')
@@ -62,8 +62,8 @@ if __name__ == "__main__":
     print("test LogLoss", round(log_loss(test[target].values, pred_ans), 4))
     print("test AUC", round(roc_auc_score(test[target].values, pred_ans), 4))
 
-    user_embedding_model = Model(inputs=model.input, outputs=model.get_layer("dnn").output)
-    item_embedding_model = Model(inputs=model.input, outputs=model.get_layer("dnn_1").output)
+    user_embedding_model = Model(inputs=model.input, outputs=model.get_layer("user_embedding").output)
+    item_embedding_model = Model(inputs=model.input, outputs=model.get_layer("item_embedding").output)
     user_embedding = user_embedding_model.predict(test_model_input)
     item_embedding = item_embedding_model.predict(test_model_input)
 
