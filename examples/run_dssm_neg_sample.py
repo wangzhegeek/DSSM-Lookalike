@@ -1,6 +1,7 @@
 import pandas as pd
 from sklearn.metrics import log_loss, roc_auc_score
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
 from deepctr.models.dssm import DSSM
@@ -10,6 +11,7 @@ from tensorflow.python.keras.models import Model
 
 if __name__ == "__main__":
     data = pd.read_csv('../data/train_sample.csv')
+
     data['label'] = data['label'].replace(-1, 0)
     print(data.head())
 
@@ -27,9 +29,9 @@ if __name__ == "__main__":
     data = Negative_Sample(data, 'aid', 'uid', 'label', 10, method_id=2)
 
     # 1.Label Encoding for sparse features,and do simple Transformation for dense features
-    # for feat in sparse_features:
-    #     lbe = LabelEncoder()
-    #     data[feat] = lbe.fit_transform(data[feat])
+    for feat in sparse_features:
+        lbe = LabelEncoder()
+        data[feat] = lbe.fit_transform(data[feat])
     # mms = MinMaxScaler(feature_range=(0, 1))
     # data[dense_features] = mms.fit_transform(data[dense_features])
 
@@ -56,7 +58,7 @@ if __name__ == "__main__":
                   metrics=['binary_crossentropy'], )
 
     history = model.fit(train_model_input, train[target].values,
-                        batch_size=256, epochs=1, verbose=2, validation_split=0.2,)
+                        batch_size=256, epochs=10, verbose=2, validation_split=0.2,)
     model.save_weights('../saved_model/dssm.ckpt')
     pred_ans = model.predict(test_model_input, batch_size=256)
     print("test LogLoss", round(log_loss(test[target].values, pred_ans), 4))
