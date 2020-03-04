@@ -1,2 +1,0 @@
-model_checkpoint_path: "dssm.ckpt"
-all_model_checkpoint_paths: "dssm.ckpt"
