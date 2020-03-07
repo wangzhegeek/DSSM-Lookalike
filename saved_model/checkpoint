@@ -1,0 +1,2 @@
+model_checkpoint_path: "movielens_dssm.ckpt"
+all_model_checkpoint_paths: "movielens_dssm.ckpt"

@@ -4,9 +4,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
-from deepctr.models.dssm import DSSM
-from deepctr.inputs import SparseFeat, get_feature_names, Negative_Sample
+from models.dssm import DSSM
+from deepctr.inputs import SparseFeat, get_feature_names
 from tensorflow.python.keras.models import Model
+from utils import Negative_Sample
 
 
 if __name__ == "__main__":
@@ -41,15 +42,12 @@ if __name__ == "__main__":
                            for i, feat in enumerate(user_features)]
     item_feature_columns = [SparseFeat(feat, vocabulary_size=data[feat].nunique(), embedding_dim=20)
                            for i, feat in enumerate(item_features)]
-    fixlen_feature_columns = [SparseFeat(feat, vocabulary_size=data[feat].nunique(),embedding_dim=4)
-                           for i,feat in enumerate(sparse_features)]
 
-    feature_names = get_feature_names(fixlen_feature_columns)
     # 3.generate input data for model
 
     train, test = train_test_split(data, test_size=0.2)
-    train_model_input = {name:train[name] for name in feature_names}
-    test_model_input = {name:test[name] for name in feature_names}
+    train_model_input = {name: train[name] for name in sparse_features}
+    test_model_input = {name: test[name] for name in sparse_features}
 
     # 4.Define Model,train,predict and evaluate
     model = DSSM(user_feature_columns, item_feature_columns, task='binary')
