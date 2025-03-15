@@ -1,8 +1,8 @@
 import numpy as np
-from collections import OrderedDict, Counter
 import pandas as pd
-import tensorflow as tf
-from deepctr.layers.utils import div, reduce_sum
+import torch
+import torch.nn.functional as F
+from collections import OrderedDict, Counter
 
 def Negative_Sample(data, user_col, item_col, label_col, ratio, method_id=2):
     """
@@ -55,10 +55,60 @@ def Negative_Sample(data, user_col, item_col, label_col, ratio, method_id=2):
     return pd.concat([pos_data, neg_data])
 
 
-def Cosine_Similarity(query, candidate, gamma=1, axis=-1):
-    query_norm = tf.norm(query, axis=axis)
-    candidate_norm = tf.norm(candidate, axis=axis)
-    cosine_score = reduce_sum(tf.multiply(query, candidate), -1)
-    cosine_score = div(cosine_score, query_norm*candidate_norm+1e-8)
-    cosine_score = tf.clip_by_value(cosine_score, -1, 1.0)*gamma
-    return cosine_score
+def cosine_similarity(query, candidate, gamma=1):
+    """
+    计算余弦相似度
+    :param query: 查询向量
+    :param candidate: 候选向量
+    :param gamma: 缩放因子
+    :return: 余弦相似度
+    """
+    # 计算余弦相似度
+    cosine_sim = F.cosine_similarity(query, candidate, dim=1)
+    # 裁剪并缩放
+    cosine_sim = torch.clamp(cosine_sim, -1.0, 1.0) * gamma
+    return cosine_sim
+
+
+class EarlyStopping:
+    """早停机制，在验证集上连续多轮指标不再提升时停止训练"""
+    def __init__(self, patience=7, verbose=False, delta=0, path='checkpoint.pt'):
+        """
+        Args:
+            patience (int): 在多少个epoch内验证集指标没有提升后停止训练
+            verbose (bool): 是否打印早停信息
+            delta (float): 指标提升的最小变化量，小于此值视为没有提升
+            path (str): 保存最佳模型的路径
+        """
+        self.patience = patience
+        self.verbose = verbose
+        self.counter = 0
+        self.best_score = None
+        self.early_stop = False
+        self.val_loss_min = np.inf
+        self.delta = delta
+        self.path = path
+
+    def __call__(self, val_loss, model):
+        score = -val_loss
+
+        if self.best_score is None:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+        elif score < self.best_score + self.delta:
+            self.counter += 1
+            if self.verbose:
+                print(f'EarlyStopping counter: {self.counter} out of {self.patience}')
+            if self.counter >= self.patience:
+                self.early_stop = True
+        else:
+            self.best_score = score
+            self.save_checkpoint(val_loss, model)
+            self.counter = 0
+
+    def save_checkpoint(self, val_loss, model):
+        """保存模型"""
+        if self.verbose:
+            print(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}). Saving model ...')
+        torch.save(model.state_dict(), self.path)
+        self.val_loss_min = val_loss 
